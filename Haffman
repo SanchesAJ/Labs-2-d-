@@ -1,0 +1,83 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+//Команды для работы с деревом -- ВЫНЕСТИ В ФАЙЛ
+typedef struct _TreeNode {
+	struct _TreeNode *left;
+	struct _TreeNode *right;
+	int leftBit;
+	int rightBit;
+	char Alpha;  
+	int countUnder;
+}Tree;
+
+Tree CreateTree(Tree *leftNew, Tree *rightNew) {
+	Tree *New = malloc(sizeof(Tree));
+	New->leftBit = 0;
+	New->rightBit = 1;
+	New->countUnder = (leftNew->countUnder) + (rightNew->countUnder);
+	New->left = leftNew;
+	New->right = rightNew;
+	New->Alpha = NULL;
+	return *New;
+}
+
+Tree CreateList(int Number,int temp) {
+	Tree *New = malloc(sizeof(Tree));
+	New->Alpha = Number;
+	New->countUnder = temp;
+	New->left = NULL;
+	New->right = NULL;
+	New->leftBit = NULL;
+	New->rightBit = NULL;
+	return *New;
+}
+
+
+void encode(FILE *input) {
+	//Устанавливаем частоту символов
+	int Alphabet[256];
+	for (int i = 0; i < 256; i++)
+		Alphabet[i] = 0;
+
+	while (!feof(input)) {
+		unsigned char temp;
+		fscanf(input, "%c", &temp);
+		for (int i = 0; i < 256; i++) {
+			if (temp == i) {
+				Alphabet[i]++;
+				break;
+			}
+		}
+	} 
+
+
+
+
+}
+
+int main() {
+	FILE *in = fopen("in.txt", "r");
+	char mode;
+	fscanf(in, "%c", &mode);
+	 
+
+	switch (mode)
+	{
+	case 'e': {
+	encode(in);
+		break;
+	}
+	case 'd': { 
+		//decode;
+		break;
+	}
+	default:
+		printf("Help");
+		break;
+	}
+	return 0;
+}
