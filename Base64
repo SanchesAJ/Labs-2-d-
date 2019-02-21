@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <string.h>
 
 const char Base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -32,7 +33,7 @@ int tobit(char *bufA, int *birr) {
 			}
 		}
 		y += 8;
-		
+
 	}
 	int count = 0;
 	for (int i = 0; i < 24; ++i) {
@@ -43,14 +44,25 @@ int tobit(char *bufA, int *birr) {
 	return count;
 }
 
-void encode(FILE *input, FILE *output) {
+int chekFile(FILE * f) {
+	if (f == NULL)
+		return 0;
+	int n = !feof(f);
+	return n;
+}
+
+void encode(FILE *input, FILE *output, int Translate, int long rem) {
 	char *buf = malloc(3 * sizeof(char));
 	int *bitbuf = malloc(24 * sizeof(int));
-	while (!feof(input)) {
+	long int countTranslate = 0;
+	
+
+	while (chekFile(input)) {
 		fread(buf, sizeof(char), 3, input);
 		int count = tobit(buf, bitbuf);
 		int e = 0;
-		for (e ; e < count;) {
+
+		for (e; e < count;) {
 			int sum = 0;
 			for (int i = 0; i < 6; ++i) {
 				sum = (sum * 2) + bitbuf[i + e];
@@ -60,27 +72,38 @@ void encode(FILE *input, FILE *output) {
 				printf("=");
 				break;
 			}
-
 			printf("%c", Base64[sum]);
 			//fprintf(output,"%c", Base64[sum]);
-			
+
 		}
-		if (e > count) {
-			break;
+		
+		if ((Translate)) {
+			countTranslate += 3;
+			if ((rem <= countTranslate)) {
+				char *FirstBuf = malloc(rem * sizeof(char));
+				int one = (countTranslate % rem);
+				fseek(input, -rem, SEEK_CUR /*- one*/);				
+				int r=fread(FirstBuf, sizeof(char), rem, input);
+				FirstBuf[r] = '\0';				
+				countTranslate = 0;
+				printf("\n%s\n", FirstBuf);
+			}
+			//Подшаманить вывод в файл
 		}
+
 	}
 
 
 }
- 
-void decode(FILE *input, FILE *output) {
+
+void decode(FILE *input, FILE *output,int miss) {
 	char *buf = malloc(3 * sizeof(char));
 	int *bitbuf = malloc(24 * sizeof(int));
-	while (!feof(input)) {
+	while (chekFile(input)) {
 		fread(buf, sizeof(char), 4, input);
-		
+
 		int y = 0;
-		int birar[24]= {8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8}; 
+		int birar[24] = { 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8 };
 		int sim;
 		for (int j = 0; j < 4; ++j) {
 			int size[6] = { 8,8,8,8,8,8 };
@@ -95,7 +118,26 @@ void decode(FILE *input, FILE *output) {
 				}
 
 			}
-			
+			if (!miss) {
+				if ((buf[j] != '=') && (r > 64)) {
+					printf("\nERROR\n");
+					return;
+				}
+			}else
+			{
+				if ((r > 64)&&(buf[j]!=' ')) {
+					int e;
+					for (int f = j; f <= 3-j; ++f) {
+						buf[f] = buf[f + 1];
+						e = f;
+					}
+					fscanf(input, "%c", &buf[e]);
+					continue;
+				}
+				
+			}
+
+
 			while (i < 6) {
 				size[i] = sim % 2;
 				sim /= 2;
@@ -106,10 +148,10 @@ void decode(FILE *input, FILE *output) {
 				size[t] = size[5 - t];
 				size[5 - t] = temp;
 			}
-			
-				for (int t = 0; t < 6; t++) {
-					birar[t + y] = size[t];
-				}
+
+			for (int t = 0; t < 6; t++) {
+				birar[t + y] = size[t];
+			}
 			y += 6;
 
 		}
@@ -120,19 +162,35 @@ void decode(FILE *input, FILE *output) {
 				sum = (sum * 2) + birar[i + e];
 			}
 			e += 8;
-			//unsigned char sym = sum;
 			printf("%c", sum);
 		}
 	}
 }
 
-int main(int argc, char argv) {
+int main(char mode, char argv,long  int count,char argi) {
 	FILE *in = fopen("in.txt", "r");
 	FILE *out = fopen("out.txt", "r");
+	int Translate=0;
+	long int modeCount=0;
+	if (argv == 'f') {
+		 Translate = 1;
+		 modeCount = count;
+	}
+	int ignore = 0;
+	if (argi == 'i') {
+		ignore = 1;
+	}
 
-	encode(in, out);
-	printf("\n\n");
-	decode(out, out);
+	switch (mode)
+	{
+	case 'e': {encode(in, out, Translate, modeCount);
+		break;
+	}
+	case 'd': {
+		decode(out, out, ignore);
+		break;
+	}
+	}
 
 	fclose(in);
 	fclose(out);
