@@ -55,7 +55,7 @@ void encode(FILE *input, FILE *output, int Translate, int long rem) {
 	char *buf = malloc(3 * sizeof(char));
 	int *bitbuf = malloc(24 * sizeof(int));
 	long int countTranslate = 0;
-	
+
 
 	while (chekFile(input)) {
 		fread(buf, sizeof(char), 3, input);
@@ -76,15 +76,15 @@ void encode(FILE *input, FILE *output, int Translate, int long rem) {
 			//fprintf(output,"%c", Base64[sum]);
 
 		}
-		
+
 		if ((Translate)) {
 			countTranslate += 3;
 			if ((rem <= countTranslate)) {
 				char *FirstBuf = malloc(rem * sizeof(char));
 				int one = (countTranslate % rem);
-				fseek(input, -rem, SEEK_CUR /*- one*/);				
-				int r=fread(FirstBuf, sizeof(char), rem, input);
-				FirstBuf[r] = '\0';				
+				fseek(input, -rem, SEEK_CUR /*- one*/);
+				int r = fread(FirstBuf, sizeof(char), rem, input);
+				FirstBuf[r] = '\0';
 				countTranslate = 0;
 				printf("\n%s\n", FirstBuf);
 			}
@@ -96,7 +96,7 @@ void encode(FILE *input, FILE *output, int Translate, int long rem) {
 
 }
 
-void decode(FILE *input, FILE *output,int miss) {
+void decode(FILE *input, FILE *output, int miss) {
 	char *buf = malloc(3 * sizeof(char));
 	int *bitbuf = malloc(24 * sizeof(int));
 	while (chekFile(input)) {
@@ -105,12 +105,15 @@ void decode(FILE *input, FILE *output,int miss) {
 		int y = 0;
 		int birar[24] = { 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8 };
 		int sim;
+		int rerun = 0;
 		for (int j = 0; j < 4; ++j) {
+			if (rerun) {
+				j--;
+				rerun = 0;
+			}
 			int size[6] = { 8,8,8,8,8,8 };
 			int i = 0; int r = 0;
-			if ('\n' == buf[j]) {
-				j++;
-			}
+			
 			for (r; r <= 64; r++) {
 				if (Base64[r] == buf[j]) {
 					sim = r;
@@ -123,18 +126,20 @@ void decode(FILE *input, FILE *output,int miss) {
 					printf("\nERROR\n");
 					return;
 				}
-			}else
+			}
+			else
 			{
-				if ((r > 64)&&(buf[j]!=' ')) {
-					int e;
-					for (int f = j; f <= 3-j; ++f) {
+				if (((buf[j] != '=') && (r > 64))||(buf[j] == ' ') || (buf[j] == '\n')) {
+					int e=j;
+					int f = j;
+					for ( f ; f < 4 - j; ++f) {
 						buf[f] = buf[f + 1];
 						e = f;
 					}
 					fscanf(input, "%c", &buf[e]);
+					rerun = 1;
 					continue;
-				}
-				
+				}	
 			}
 
 
@@ -167,20 +172,18 @@ void decode(FILE *input, FILE *output,int miss) {
 	}
 }
 
-int main(char mode, char argv,long  int count,char argi) {
+int main(char mode, char argv, long  int count, char argi) {
 	FILE *in = fopen("in.txt", "r");
 	FILE *out = fopen("out.txt", "r");
-	int Translate=0;
-	long int modeCount=0;
-	if (argv == 'f') {
-		 Translate = 1;
-		 modeCount = count;
-	}
+	int Translate = 0;
+	long int modeCount = 0;
+	
+		Translate = 0;
+		modeCount = 40;
+	
 	int ignore = 0;
-	if (argi == 'i') {
 		ignore = 1;
-	}
-
+		mode = 'e';
 	switch (mode)
 	{
 	case 'e': {encode(in, out, Translate, modeCount);
@@ -196,3 +199,26 @@ int main(char mode, char argv,long  int count,char argi) {
 	fclose(out);
 	return 0;
 }
+
+
+/*argv[1] = "e";
+	argv[2] = "in.txt";
+	argv[3] = "out.txt";
+	argv[4] = "i";
+
+		for (int i = 0; i < argc; i++) {
+			// Выводим список аргументов в цикле
+			printf("%s\n",argv[i]);
+		}
+
+	int Translate = 0;
+	long int modeCount = 0;
+
+	char mode=argv[1];
+	FILE *in = fopen(argv[2], "r");
+	FILE *out = fopen(argv[3], "w");
+
+	int ignore = 0;
+	if (argv[4] == 'i')
+		ignore = 1;
+	*/
