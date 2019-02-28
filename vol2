@@ -70,11 +70,10 @@ void encode(FILE *input, FILE *output, int Translate, int long rem) {
 			e += 6;
 			if (e > count) {
 				printf("=");
-				fprintf(output, "=");
 				break;
 			}
 			printf("%c", Base64[sum]);
-			fprintf(output,"%c", Base64[sum]);
+			//fprintf(output,"%c", Base64[sum]);
 
 		}
 
@@ -98,96 +97,103 @@ void encode(FILE *input, FILE *output, int Translate, int long rem) {
 }
 
 void decode(FILE *input, FILE *output, int miss) {
-	char *buf = malloc(3 * sizeof(char));
+	char *buf = malloc(4 * sizeof(char));
 	int *bitbuf = malloc(24 * sizeof(int));
+	int sim;
+	FILE *out = fopen("out.png", "wb");
 	while (chekFile(input)) {
-		fread(buf, sizeof(char), 4, input);
+		int w = 0;
 
-		int y = 0;
-		int birar[24] = { 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8 };
-		int sim;
-		int rerun = 0;
-		for (int j = 0; j < 4; ++j) {
-			if (rerun) {
-				j--;
-				rerun = 0;
-			}
-			int size[6] = { 8,8,8,8,8,8 };
-			int i = 0; int r = 0;
-			
+		while (w < 4) {
+			char temp;
+			fscanf(input, "%c", &temp);
+			int r = 0;
+
 			for (r; r <= 64; r++) {
-				if (Base64[r] == buf[j]) {
+				if (Base64[r] == temp) {
 					sim = r;
 					break;
 				}
-
 			}
-			if (!miss) {
-				if ((buf[j] != '=') && (r > 64)) {
+			if (r < 65) {
+				buf[w] = temp;
+				w++;
+			}
+			else {
+				if (!miss)
+				{
 					printf("\nERROR\n");
-					return;
 				}
+
 			}
-			else
-			{
-				if (((buf[j] != '=') && (r > 64))||(buf[j] == ' ') || (buf[j] == '\n')) {
-					int e=j;
-					int f = j;
-					for ( f ; f < 4 - j; ++f) {
-						buf[f] = buf[f + 1];
-						e = f;
+		}
+
+
+			int y = 0;
+			int birar[24] = { 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8 };
+			int rerun = 0;
+			for (int j = 0; j < 4; ++j) {
+				int size[6] = { 8,8,8,8,8,8 };
+				int i = 0; int r = 0;
+				int sim;
+
+				for (r; r <= 64; r++) {
+					if (Base64[r] == buf[j]) {
+						sim = r;
+						break;
 					}
-					fscanf(input, "%c", &buf[e]);
-					rerun = 1;
-					continue;
-				}	
-			}
+
+				}
 
 
-			while (i < 6) {
-				size[i] = sim % 2;
-				sim /= 2;
-				i++;
-			}
-			for (int t = 0; t < 3; ++t) {
-				int temp = size[t];
-				size[t] = size[5 - t];
-				size[5 - t] = temp;
+
+				while (i < 6) {
+					size[i] = sim % 2;
+					sim /= 2;
+					i++;
+				}
+				for (int t = 0; t < 3; ++t) {
+					int temp = size[t];
+					size[t] = size[5 - t];
+					size[5 - t] = temp;
+				}
+
+				for (int t = 0; t < 6; t++) {
+					birar[t + y] = size[t];
+				}
+				y += 6;
+
 			}
 
-			for (int t = 0; t < 6; t++) {
-				birar[t + y] = size[t];
+			int e = 0;
+			for (e; e < 24;) {
+				int sum = 0;
+				for (int i = 0; i < 8; ++i) {
+					sum = (sum * 2) + birar[i + e];
+				}
+				e += 8;
+				fputc((char)sum,out);
+				//printf("%c", sum);
 			}
-			y += 6;
-
-		}
-		int e = 0;
-		for (e; e < 24;) {
-			int sum = 0;
-			for (int i = 0; i < 8; ++i) {
-				sum = (sum * 2) + birar[i + e];
-			}
-			e += 8;
-			printf("%c", sum);
-		}
+		
 	}
 }
 
-int main() {
-	
+	int main() {
+
 	int Translate = 0;
 	long int modeCount = 0;
-	
-		Translate = 0;
-		modeCount = 40;
-	
+
+	Translate = 0;
+	modeCount = 40;
+
 	int ignore = 0;
-		ignore = 1;
-		char mode = 'd';
+	ignore = 1;
+	char mode = 'd';
 	switch (mode)
 	{
 	case 'e': {
-		FILE *in = fopen("in.txt", "r");
+		FILE *in = fopen("in.jpg", "r");
 		FILE *out = fopen("out.txt", "w");
 		encode(in, out, Translate, modeCount);
 		fclose(in);
@@ -199,9 +205,11 @@ int main() {
 		decode(out, out, ignore);
 		fclose(out);
 		break;
-		
+
 	}
 	}
 
 	return 0;
 }
+
+
