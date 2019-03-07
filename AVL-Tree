@@ -1,0 +1,135 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Treenode // Структура дерева
+{
+	int key;
+	int height;
+	struct Treenode* left;
+	struct Treenode* right;
+}Tree;
+
+
+int height(Tree* root)
+{
+	return root ? root->height : 0;
+}
+
+int bfactor(Tree* p)
+{
+	return height(p->right) - height(p->left);
+}
+
+void fixheight(Tree* p)
+{
+	int hl = height(p->left);
+	int hr = height(p->right);
+	p->height = (hl > hr ? hl : hr) + 1;
+}
+/*Каноничные повороты с семинара*/
+Tree* rotateright(Tree* p) // правый поворот вокруг p
+{
+	Tree* q = p->left;
+	p->left = q->right;
+	q->right = p;
+	fixheight(p);
+	fixheight(q);
+	return q;
+}
+
+Tree* rotateleft(Tree* q) // левый поворот вокруг q
+{
+	Tree* p = q->right;
+	q->right = p->left;
+	p->left = q;
+	fixheight(q);
+	fixheight(p);
+	return p;
+}
+
+Tree* balance(Tree* p) // балансировка
+{
+	fixheight(p);
+	if (bfactor(p) == 2)
+	{
+		if (bfactor(p->right) < 0)
+			p->right = rotateright(p->right);
+		return rotateleft(p);
+	}
+	if (bfactor(p) == -2)
+	{
+		if (bfactor(p->left) > 0)
+			p->left = rotateleft(p->left);
+		return rotateright(p);
+	}
+	return p; // Отсутствие необходимости балансировки
+}
+
+Tree* insert(Tree* p, int k) // вставка ключа k в дерево с корнем p
+{
+	if (p == NULL) {
+		p = malloc(sizeof(Tree));
+		p->key = 0;
+		p->height = 0;
+		p->left = NULL;
+		p->right = NULL;
+	}
+	if (p->key==0) {
+		p->key = k;
+		fixheight(p);
+		return p;
+	}
+	if (k < p->key)
+		p->left = insert(p->left, k);
+	else
+		p->right = insert(p->right, k);
+	return balance(p);
+}
+
+Tree* removemin(Tree* p)
+{
+	if (p->left == 0)
+		return p->right;
+	p->left = removemin(p->left);
+	return 0;
+}
+Tree* removeminRight(Tree* p)
+{
+	if (p->right == 0)
+		return p->left;
+	p->right = removeminRight(p->right);
+	return 0;
+}
+
+void deleteTree(Tree *p) {
+	while (p != NULL)
+	{
+		removemin(p);
+		removeminRight(p);
+		if ((p->left == NULL) && (p->right == NULL))
+			break;
+	}
+	free(p);
+}
+
+int main() {
+	int N;
+	FILE *f = fopen("in.txt", "r");
+	FILE *out = fopen("out.txt", "w");
+	fscanf(f, "%d", &N);
+	Tree *AVL = NULL;
+	for (int i = 0; i < N; ++i) {
+		int temp;
+		fscanf(f, "%d", &temp);
+		AVL = insert(AVL,temp);
+	}
+	if (AVL == NULL) {
+		fprintf(out, "%d", 0);
+		return 0;
+	}
+	fprintf(out,"%d", AVL->height);
+
+	deleteTree(AVL);
+	return 0;
+}
