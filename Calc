@@ -7,9 +7,9 @@
 #define SUB '-'
 #define MUL '*'
 #define DIV '/'
-// '@'-- условный стоп-символ на всём протяжении кода.
+// '@'-- ГіГ±Г«Г®ГўГ­Г»Г© Г±ГІГ®ГЇ-Г±ГЁГ¬ГўГ®Г« Г­Г  ГўГ±ВёГ¬ ГЇГ°Г®ГІГїГ¦ГҐГ­ГЁГЁ ГЄГ®Г¤Г .
 
-//ERROR-коды
+//ERROR-ГЄГ®Г¤Г»
 #define SYNTAXIX_ERROR {printf ("syntax error");}
 #define ZERO {printf ("division by zero");}
 #define OPER {(('+')||('-')||('*')||('/'))}
@@ -64,7 +64,7 @@ Error pop(Stack *s, char *a) {
 	free(oldHead);
 	return GOOD;
 }
-//Я знаю что его нужно вынести в библиотеку. Но не могу это седелать сейчас.
+//Гџ Г§Г­Г Гѕ Г·ГІГ® ГҐГЈГ® Г­ГіГ¦Г­Г® ГўГ»Г­ГҐГ±ГІГЁ Гў ГЎГЁГЎГ«ГЁГ®ГІГҐГЄГі. ГЌГ® Г­ГҐ Г¬Г®ГЈГі ГЅГІГ® Г±ГҐГ¤ГҐГ«Г ГІГј Г±ГҐГ©Г·Г Г±.
 int  convert(char *str, int num) {
 	int f = 0;
 	num -= 1;
@@ -136,29 +136,29 @@ Error chek(char *e) {
 	return GOOD;
 	free(s);
 }
-//предварительная проверка
+//ГЇГ°ГҐГ¤ГўГ Г°ГЁГІГҐГ«ГјГ­Г Гї ГЇГ°Г®ГўГҐГ°ГЄГ 
 int prior(char a) {
 	if ((a == '+') || (a == '-'))
 		return 0;
 	if ((a == '*') || (a == '/'))
 		return 1;
 }
-// Польская запись
+// ГЏГ®Г«ГјГ±ГЄГ Гї Г§Г ГЇГЁГ±Гј
 Stack  *toPoland(char *ex) {
 	int  i = 0;
 	char proxy = '@';
 	Stack *s = malloc(sizeof(Stack));
 	Stack *node = malloc(sizeof(Stack));
 	push(s, proxy);
-	push(node, proxy); //костыли, но без них никак
+	push(node, proxy); //ГЄГ®Г±ГІГ»Г«ГЁ, Г­Г® ГЎГҐГ§ Г­ГЁГµ Г­ГЁГЄГ ГЄ
 	while (ex[i - 1] != '@') {
 		char red = ex[i];
 
-		//считали токен
+		//Г±Г·ГЁГІГ Г«ГЁ ГІГ®ГЄГҐГ­
 		if ((red != '+') && (red != '-') && (red != '*') && (red != '/') && (red != '(') && (red != ')') && (red != '@')) {
 			push(s, red);
 		}
-		//первый этап
+		//ГЇГҐГ°ГўГ»Г© ГЅГІГ ГЇ
 
 		if ((red == '+') || (red == '-') || (red == '*') || (red == '/')) {
 
@@ -219,7 +219,7 @@ Stack  *toPoland(char *ex) {
 	return s;
 
 }
-//Перевод в Польскую нотацию
+//ГЏГҐГ°ГҐГўГ®Г¤ Гў ГЏГ®Г«ГјГ±ГЄГіГѕ Г­Г®ГІГ Г¶ГЁГѕ
 Stack *Regroup(Stack *s) {
 	char proxy = '@';
 	Stack *node = malloc(sizeof(Stack));
@@ -231,7 +231,7 @@ Stack *Regroup(Stack *s) {
 	}
 	return node;
 }
-//Переворот стека
+//ГЏГҐГ°ГҐГўГ®Г°Г®ГІ Г±ГІГҐГЄГ 
 int toint(Stack *s) {
 	char proxy;
 	if (peek(s) == ' ')
@@ -383,11 +383,11 @@ void Calculator(Stack *s) {
 
 	printf("%d", toint(node));
 	
-	//Отладить вычисления. Но оно работет... Через раз... 
+	//ГЋГІГ«Г Г¤ГЁГІГј ГўГ»Г·ГЁГ±Г«ГҐГ­ГЁГї. ГЌГ® Г®Г­Г® Г°Г ГЎГ®ГІГҐГІ... Г—ГҐГ°ГҐГ§ Г°Г Г§... 
 	return;
 
 }
-//Счёт
+//Г‘Г·ВёГІ
 
 void Correct(char *e) {
 	int i = 0; int count = 0;
@@ -395,7 +395,7 @@ void Correct(char *e) {
 	while (e[i] != '@') {
 		len++;
 		i++;
-	}//немного корявый счёт
+	}//Г­ГҐГ¬Г­Г®ГЈГ® ГЄГ®Г°ГїГўГ»Г© Г±Г·ВёГІ
 	i = 0;
 	while (e[i] != '@') {
 		count = 0;
@@ -412,7 +412,7 @@ void Correct(char *e) {
 	}
 	return;
 }
-//Корректировка чисел для удобства 
+//ГЉГ®Г°Г°ГҐГЄГІГЁГ°Г®ГўГЄГ  Г·ГЁГ±ГҐГ« Г¤Г«Гї ГіГ¤Г®ГЎГ±ГІГўГ  
 int NoOPS(char *e) {
 	int count = 0;
 	char real[100]; int i = 0;
@@ -456,9 +456,9 @@ int main() {
 		return 0;
 
 	Correct(&example);
-	//размечаем знаки  
+	//Г°Г Г§Г¬ГҐГ·Г ГҐГ¬ Г§Г­Г ГЄГЁ  
 	Stack *s = toPoland(example);
-	/*Обратная Польская запись */
+	/*ГЋГЎГ°Г ГІГ­Г Гї ГЏГ®Г«ГјГ±ГЄГ Гї Г§Г ГЇГЁГ±Гј */
 
 
 
@@ -466,7 +466,7 @@ int main() {
 		return 0;
 	s = Regroup(s);
 	Calculator(s);
-	//Подсчёт
+	//ГЏГ®Г¤Г±Г·ВёГІ
 
 
 	free(s);
