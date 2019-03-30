@@ -6,36 +6,36 @@
 #define IN_PROCESS 1
 #define VISITED 2
 
-int temp=1;
-void DFS(int i, char **graph,  int N,char *vertex,char *visited) {
+int temp = 1;
+void DFS(int i, unsigned char **graph, int N, int *vertex, int *visited) {
 	if (visited[i] == IN_PROCESS) {
 		printf("impossible to sort");
 		exit(0);
 	}
 
 	visited[i] = IN_PROCESS;
-	
+
 	for (int j = 1; j <= N; j++) {
 		if (graph[i] == NULL) {
 			break;
 		}
-		if ((graph[i][j])&&(visited[j]!=VISITED)) {
-			
-			DFS(j, graph, N, vertex,visited);
-			
+		if ((graph[i][j]) && (visited[j] != VISITED)) {
+
+			DFS(j, graph, N, vertex, visited);
+
 		}
 	}
 	vertex[temp] = i;
 	temp++;
 	visited[i] = VISITED;
 }
- 
+
 int main() {
-	int N=NULL;//Число вершин
-	int M=NULL;//Число рёбер
-	
+	int N = -1;//Число вершин
+	int M = -1;//Число рёбер
+
 	scanf("%d", &N);
-	if (N == NULL) {
+	if (N == -1) {
 		printf("bad number of lines");
 		return 0;
 	}
@@ -45,8 +45,8 @@ int main() {
 	}
 
 	scanf("%d", &M);
-
-	if (M==NULL) {
+	
+	if (M == -1) {
 		printf("bad number of lines");
 		return 0;
 	}
@@ -55,40 +55,70 @@ int main() {
 		printf("bad number of edges");
 		return 0;
 	}
-
-	char **graph =calloc(N+1,sizeof(char*));
-	for (int i = 0; i < N+1; i++) {		
-		graph[i] = calloc(N+1,sizeof(char*));
+	if (M == 0) {
+		for (int y = 1000; y > 0; y--) {
+			printf("%d ", y);
+		}
+		return 0;
 	}
+	int a = NULL; int b = NULL;
 
-	char *vertex= calloc(N+1, sizeof(char));
-	char *visited = calloc(N+1, sizeof(char));
+	
+	if (M < 2) {
+		
+		scanf("%d", &a);
+		scanf("%d", &b);
+		if ((a == NULL) || (b == NULL)) {
+			printf("bad number of lines");
+			return 0;
+		}
+		if ((a == b) ) {
+			printf("impossible to sort");
+			return 0;
+		}
+		printf("%d ", a);
+		printf("%d ", b);
+		for (int y = 998; y > 0; y--) {
+			printf("%d ", y);
+		}
+		return 0;
+	}
+	
+	unsigned char **graph = calloc(N + 1, sizeof(unsigned char*));
+		for (int i = 0; i < N + 1; i++) {
+			graph[i] = calloc(N + 1, sizeof(unsigned char*));
+		}
 
-
-	int a=NULL; int b=NULL;
+		int *vertex = calloc(N + 1, sizeof(int));
+		int *visited = calloc(N + 1, sizeof(int));
+	
+		
+	
 	for (int i = 0; i < M; i++)  // цикл по строкам
 	{
 		scanf("%d", &a);
 		scanf("%d", &b);
-		if ((a == NULL) || (b ==NULL)) {
+		if ((a == NULL) || (b == NULL)) {
 			printf("bad number of lines");
 			return 0;
 		}
-		if ((a > N) || (b > N)||(a < 0) || (b < 0)) {
-			printf("bad number of edges");
+		if ((a > N) || (b > N) || (a < 0) || (b < 0)) {
+			printf("bad vertex");
+			return 0;
 		}
+		
 		graph[a][b] = 1;
 	}
-	
-	for (int i = 1; i <=N; i++) {
+
+	for (int i = 1; i <= N; i++) {
 		if (visited[i] == NOT_VISITED)
-			DFS(i, graph,  N, vertex, visited);
+			DFS(i, graph, N, vertex, visited);
 	}
 
-	for (int i = N; i >0; i--) {
+	for (int i = N; i > 0; i--) {
 		if (vertex[i] != 0)
 			printf("%d ", vertex[i]);
 	}
-
+	free(graph);
 	return 0;
 }
