@@ -1,0 +1,186 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#define MAXN 5000
+typedef struct _Edge
+{
+	int u;
+	int v;
+	int w;
+} Edge;
+
+void swap(int * a, int * b) {
+	*a ^= *b;
+	*b ^= *a;
+	*a ^= *b;
+}
+
+typedef struct _List {
+	Edge val;
+	struct _List *next;
+} List;
+typedef struct _Stack {
+	List *head;
+} Stack;
+typedef enum ErrorCode {
+	GOOD,
+	MEMORY_ERROR,
+	VOID,
+	NO
+} Error;
+List *createList(Edge value) {
+	List *l = malloc(sizeof(List));
+	if (l == NULL) {
+		printf("Error");
+		return NULL;
+	}
+	l->val = value;
+	l->next = NULL;
+	return l;
+}
+Error push(Stack *s, Edge el) {
+	List *l = createList(el);
+	if (l == NULL)
+		return MEMORY_ERROR;
+	l->next = s->head;
+	s->head = l;
+	return GOOD;
+}
+int isEmpty(Stack *f) {
+	return f->head == NULL ? 1 : 0;
+}
+Edge pop(Stack *s) {
+	if (s->head == NULL)
+		return;
+	Edge a = s->head->val;
+	List *oldHead = s->head;
+	s->head = s->head->next;
+	free(oldHead);
+	return a;
+}
+
+
+int cmpEdge(void *l, void *r) {
+	return ((Edge*)l)->w - ((Edge*)r)->w;
+}
+Edge *readGraph(int h, int m) {
+	Edge *A = calloc(m, sizeof(Edge));
+	for (int i = 0; i < m; i++) {
+		int a = NULL; int b = NULL; int c = NULL;
+		scanf("%d", &a);
+		scanf("%d", &b);
+		scanf("%d", &c);
+		if ((a == NULL) || (b == NULL) || (c == NULL)) {
+			printf("bad number of lines");
+			exit(0);
+		}
+		if ((a < 0) || (a > h) || (b < 0) || (b > h)) {
+			printf("bad vertex");
+			exit(0);
+		}
+		if ((c < 0) || (c > INT_MAX)) {
+			printf("bad length");
+			exit(0);
+		}
+		A[i].u=a;
+		A[i].v = b;
+		A[i].w = c;
+	}
+	return A;
+}
+
+long int parent[MAXN];
+int rank[MAXN];
+
+void make_set(int v) {
+	parent[v] = v;
+	rank[v] = 0;
+}
+
+int find_set(int v) {
+	if (v == parent[v])
+		return v;
+	return parent[v] = find_set(parent[v]);
+}
+
+void union_set(int a, int b) {
+	a = find_set(a);
+	b = find_set(b);
+	if (a != b) {
+		if (rank[a] < rank[b])
+			swap(&a, &b);
+		parent[b] = a;
+		if (rank[a] == rank[b])
+			++rank[a];
+	}
+}
+
+
+int main() {
+	int N = -1;//Число вершин
+	int M = -1;//Число рёбер
+
+	scanf("%d", &N);
+	if (N == -1) {
+		printf("bad number of lines");
+		return 0;
+	}
+	if ((N < 0) || (N > 5000)) {
+		printf("bad number of vertices");
+		return 0;
+	}
+
+	scanf("%d", &M);
+	if (M == -1) {
+		printf("bad number of lines");
+		return 0;
+	}
+	if ((M < 0) || (M > N*(N + 1) / 2)) {
+		printf("bad number of edges");
+		return 0;
+	}
+
+	if (M < N-1) {
+		printf("no spanning tree\n");
+		return 0;
+	}
+	Stack *One = (Stack*)calloc(1, sizeof(Stack));
+
+	Edge *A = readGraph(N, M);
+
+	
+	if(M!=1)
+	qsort(A, N, sizeof(Edge), cmpEdge);
+
+	for (int i = 0; i < N; ++i)
+		make_set(i);
+	
+	int spanned_vertices = 1;
+	for (int i = 0; i < M; i++) {
+		if (find_set(A[i].u) != find_set(A[i].v)) {
+			union_set(A[i].u, A[i].v);
+			push(One, A[i]);
+			spanned_vertices++;
+		}
+
+	}
+
+	if (spanned_vertices != N) {
+		printf("no spanning tree\n");
+		return 0;
+	}
+
+
+	while (!isEmpty(One)) {
+		Edge *temp= calloc(1, sizeof(Edge));
+		
+		*temp=pop(One);
+		printf("%d %d\n", temp->u, temp->v);
+	}
+
+	free(A);
+	free(One);
+	return 0;
+}
+
