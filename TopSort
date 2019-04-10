@@ -56,7 +56,7 @@ int main() {
 		return 0;
 	}
 	if (M == 0) {
-		for (int y = 1000; y > 0; y--) {
+		for (int y = N; y > 0; y--) {
 			printf("%d ", y);
 		}
 		return 0;
@@ -78,7 +78,7 @@ int main() {
 		}
 		printf("%d ", a);
 		printf("%d ", b);
-		for (int y = 998; y > 0; y--) {
+		for (int y = N-M-1; y > 0; y--) {
 			printf("%d ", y);
 		}
 		return 0;
@@ -119,6 +119,12 @@ int main() {
 		if (vertex[i] != 0)
 			printf("%d ", vertex[i]);
 	}
+	for (int i = 0; i < N + 1; i++) {
+		free(graph[i]);
+
+	}
 	free(graph);
+	free(vertex);
+	free(visited);
 	return 0;
 }
