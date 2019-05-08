@@ -374,7 +374,7 @@ void decode(FILE *input) {
 	q = fgetc(input);
 
 
-	FILE *out = fopen("out.txt", "wb");
+	FILE *out = fopen("out.txt", "w");
 	int c;
 	int pos = 7;
 	unsigned char r;
