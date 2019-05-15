@@ -83,9 +83,6 @@ hufftreeNode *CreateCodeTree(Pqueue *templ) {
 }
 hufftreeNode *Training(FILE *input) {
 	//Устанавливаем частоту символов
-	int t;
-	t=fgetc(input);
-	
 	int Alphabet[257];
 	for (int i = 0; i < 256; i++)
 		Alphabet[i] = 0;
@@ -129,26 +126,19 @@ hufftreeNode *Training(FILE *input) {
 int count = 0;
 void printTree(hufftreeNode *Tree, FILE *output) {
 	if (Tree->value == '\0') {
-		//fprintf(output, "0");// Код "Создай узел"
 		fputc('0', output);
 	}
 
 	if ((Tree->left) != NULL) {
 		if (Tree->left->value == '\0') {
-			//fprintf(output, "0");
 			fputc('0', output);
-			//printf("0");
 			printTree(Tree->left->left, output);
 			printTree(Tree->left->right, output);
 		}
 		else {
 			if (Tree->left->value != '\0') {
-				//fprintf(output, "1");// Код "Создай лист"
 				fputc('1', output);
 				fputc(Tree->left->value, output);
-				//fprintf(output, "%c", Tree->left->value);
-				//printf("1");
-				//printf("%c", Tree->left->value);
 				count++;
 
 			}
@@ -158,12 +148,8 @@ void printTree(hufftreeNode *Tree, FILE *output) {
 	}
 	else {
 		if (Tree->value != '\0') {
-			//fprintf(output, "1");// Код "Создай лист"
 			fputc('1', output);
 			fputc(Tree->value, output);
-			//fprintf(output, "%c", Tree->value);
-			//printf("1");
-			//printf("%c", Tree->value);
 			count++;
 			return;
 		}
@@ -223,20 +209,14 @@ void CreateCodeTable(hufftreeNode *Tree, BinTable *Table, int num) {
 			coin++;
 
 			CreateCodeTable(Tree->left->right, Table, coin);
-			//coin--;
-			//str[coin] = '\0';
 			coin--;
 			if (coin >= 0)
 				str[coin] = '\0';
 		}
 		else {
 			if (Tree->left->value != '\0') {
-				/*str[coin] = '0';
-				coin++;
-				str[coin] = '\0';*/
-				Table[pit].symbol = Tree->left->value;
-				strcpy(Table[pit].StrTable, str);
-				//printf("%c %s\n", Tree->left->value, str);
+				Table[Tree->left->value].symbol = Tree->left->value;
+				strcpy(Table[Tree->left->value].StrTable, str);
 				pit++;
 				coin--;
 				if (coin >= 0)
@@ -250,8 +230,8 @@ void CreateCodeTable(hufftreeNode *Tree, BinTable *Table, int num) {
 
 
 			str[coin] = '\0';
-			Table[pit].symbol = Tree->value;
-			strcpy(Table[pit].StrTable, str);
+			Table[Tree->value].symbol = Tree->value;
+			strcpy(Table[Tree->value].StrTable, str);
 			//printf("%c %s\n", Tree->value, str);
 			pit++;
 			coin--;
@@ -270,8 +250,6 @@ void CreateCodeTable(hufftreeNode *Tree, BinTable *Table, int num) {
 			str[coin] = '0';
 			coin++;
 			CreateCodeTable(Tree->right->left, Table, coin);
-			//coin--;
-			//str[coin] = '\0';
 			str[coin] = '1';
 			coin++;
 			CreateCodeTable(Tree->right->right, Table, coin);
@@ -285,11 +263,8 @@ void CreateCodeTable(hufftreeNode *Tree, BinTable *Table, int num) {
 		}
 		else {
 			if (Tree->right->value != '\0') {
-				/*str[coin] = '1';
-				coin++;
-				str[coin] = '\0';*/
-				Table[pit].symbol = Tree->right->value;
-				strcpy(Table[pit].StrTable, str);
+				Table[Tree->right->value].symbol = Tree->right->value;
+				strcpy(Table[Tree->right->value].StrTable, str);
 				//printf("%c %s\n", Tree->right->value, str);
 
 				pit++;
@@ -304,9 +279,8 @@ void CreateCodeTable(hufftreeNode *Tree, BinTable *Table, int num) {
 		if (Tree->value != '\0') {
 
 			str[coin] = '\0';
-			Table[pit].symbol = Tree->value;
-			strcpy(Table[pit].StrTable, str);
-			//printf("%c %s\n", Tree->value, str);
+			Table[Tree->value].symbol = Tree->value;
+			strcpy(Table[Tree->value].StrTable, str);
 			pit++;
 			coin--;
 			str[coin] = '\0';
@@ -348,9 +322,7 @@ hufftreeNode *GoTree(unsigned char code, hufftreeNode *Node, FILE *out) {
 		if (Node->right != NULL)
 			Node = Node->right;
 		if (Node->value != '\0') {
-			//fprintf(out, "%c", Node->value);
-			fputc(Node->value, out);
-			//fwrite(&(Node->value), sizeof(char), 1, out);
+			fputc(Node->value, out);			
 			return NULL;
 		}
 		else return Node;
@@ -360,9 +332,6 @@ hufftreeNode *GoTree(unsigned char code, hufftreeNode *Node, FILE *out) {
 
 
 void decode(FILE *input) {
-
-	fgetc(input);
-	fgetc(input);
 	hufftreeNode *Tree = NULL;
 	Tree = readTree(input, NULL);
 	if (Tree == NULL) {
@@ -370,32 +339,30 @@ void decode(FILE *input) {
 	}
 	//РАБОТАЕТ
 
-	unsigned char q = fgetc(input);
-	q = fgetc(input);
-
-
-	FILE *out = fopen("out.txt", "w");
+	FILE *out = fopen("out.txt", "wb");
 	int c;
 	int pos = 7;
 	unsigned char r;
 	unsigned char b;
 	hufftreeNode *Temp = Tree;
 	int tempNext;
-	unsigned char miss = 0;
 	int temp;
+	//fgetc(input);
 	while ((c = fgetc(input)) != EOF) {
+		if (c == '$') {
+			c = fgetc(input);
+		}
 		temp = fgetc(input);
 		tempNext = fgetc(input);
 		fseek(input, -2, SEEK_CUR);
 
 
 		if (tempNext == EOF) {
-			miss = temp;
-			temp = miss - '0';
+			
 			if (temp <= 8 && temp > 0) {
 				for (int u = 0; u < 8 - temp; u++) {
 					b = (char)c;
-					r = (c >> pos - u) % 2;
+					r = (c >> (pos - u)) % 2;
 					Temp = GoTree(r, Temp, out);
 					if (Temp == NULL)
 						Temp = Tree;
@@ -406,7 +373,7 @@ void decode(FILE *input) {
 		}
 		for (int u = 0; u < 8; u++) {
 			b = (char)c;
-			r = (c >> pos - u) % 2;
+			r = (c >> (pos - u)) % 2;
 			Temp = GoTree(r, Temp, out);
 			if (Temp == NULL)
 				Temp = Tree;
@@ -414,7 +381,6 @@ void decode(FILE *input) {
 		}
 
 	}
-	//fputc("\n", out);
 }
 
 
@@ -439,21 +405,19 @@ void encode(FILE *input) {
 	fclose(input);
 	FILE *out = fopen("out.txt", "wb");
 	printTree(Code, out);
-	fprintf(out, "\n\n");
+	fputc("\n\n",out);
 	
-	BinTable *MainTable = calloc(count, sizeof(BinTable));
+	BinTable *MainTable = calloc(256, sizeof(BinTable));
 	hufftreeNode *CodeTwo = Code;
 	if (CodeTwo->value == '\0')
 		CreateCodeTable(CodeTwo, MainTable, 0); //РАБОТАЕТ
 	else {
-		MainTable[0].symbol = CodeTwo->value;
-		*MainTable[0].StrTable = '1';
-		pit++;
+		MainTable[CodeTwo->value].symbol = CodeTwo->value;
+		*MainTable[CodeTwo->value].StrTable = '1';
 	}
 	free(CodeTwo);
 
 	//End of Training
-	//FILE *t = fopen("out.txt", "ab");
 	input = fopen("in.txt", "rb");
 	fgetc(input);
 	fgetc(input);
@@ -464,12 +428,7 @@ void encode(FILE *input) {
 
 	while ((c = fgetc(input)) != EOF) {
 		unsigned char *code = calloc(255, sizeof(unsigned char));
-		for (int r = 0; r < pit; r++) {
-			if (MainTable[r].symbol == c) {
-				strcpy(code, MainTable[r].StrTable);
-				break;
-			}
-		}
+		strcpy(code, MainTable[c].StrTable);
 		for (int r = 0; r < strlen(code); r++) {
 			writeBit(code[r], Bitctx);
 		}
@@ -477,8 +436,8 @@ void encode(FILE *input) {
 
 	if ((c == EOF)) {
 		fputc(Bitctx->str, Bitctx->out);
-		fseek(out, -INT_MAX, SEEK_SET);
-		fprintf(out, "%d", 8 - (Bitctx->pos));
+		fseek(out, 0, SEEK_END);
+		fputc(8 - (Bitctx->pos), out);
 
 		////допилить вставку пустых битов
 	}
@@ -495,9 +454,10 @@ void encode(FILE *input) {
 
 int main() {
 	FILE *in = fopen("in.txt", "rb");
-	char mode;
-	fscanf(in, "%c", &mode);
-
+	int mode;
+	mode = fgetc(in);
+	int y=fgetc(in);
+	y=fgetc(in);
 	switch (mode)
 	{
 	case 'c': {
