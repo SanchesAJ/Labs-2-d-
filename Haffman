@@ -66,12 +66,12 @@ typedef struct _BinTable {
 void writeBit(unsigned char code, BitCotx *bitCtx) {
 	if (code == 1 || code == '1') {
 		bitCtx->str |= 1 << (7 - (bitCtx->pos));
-	//printf("1");//Отладочный момент
+	//printf("1");//ГЋГІГ«Г Г¤Г®Г·Г­Г»Г© Г¬Г®Г¬ГҐГ­ГІ
 		bitCtx->pos++;
 	}
 	else {
 		bitCtx->pos++;
-	//printf("0"); //Отладочный момент
+	//printf("0"); //ГЋГІГ«Г Г¤Г®Г·Г­Г»Г© Г¬Г®Г¬ГҐГ­ГІ
 	}
 	if (bitCtx->pos == 8) {
 		fputc(bitCtx->str, bitCtx->out);
@@ -103,7 +103,7 @@ hufftreeNode *CreateCodeTree(Pqueue *templ) {
 	return pop(&templ);
 }
 hufftreeNode *Training(FILE *input) {
-	//Устанавливаем частоту символов
+	//Г“Г±ГІГ Г­Г ГўГ«ГЁГўГ ГҐГ¬ Г·Г Г±ГІГ®ГІГі Г±ГЁГ¬ГўГ®Г«Г®Гў
 	int *Alphabet=calloc(257,sizeof(int));
 
 	int j = 0;
@@ -117,7 +117,7 @@ hufftreeNode *Training(FILE *input) {
 	}
 	
 
-	// Создание очереди.
+	// Г‘Г®Г§Г¤Г Г­ГЁГҐ Г®Г·ГҐГ°ГҐГ¤ГЁ.
 	int i; Pqueue *Collum = NULL;
 	for (i = 0; i < 256; ++i) {
 		if (Alphabet[i] != 0) {
@@ -139,7 +139,7 @@ hufftreeNode *Training(FILE *input) {
 	
 
 	pop(&Collum);
-	//// Создаём дерево
+	//// Г‘Г®Г§Г¤Г ВёГ¬ Г¤ГҐГ°ГҐГўГ®
 	//free(Alphabet);
 	return CreateCodeTree(Collum);
 }
@@ -253,7 +253,7 @@ void decode(FILE *input) {
 		exit(0);
 	}
 	
-	//РАБОТАЕТ
+	//ГђГЂГЃГЋГ’ГЂГ…Г’
 
 	FILE *out = fopen("out.txt", "wb");
 	
@@ -360,7 +360,7 @@ void encode(FILE *input) {
 		//fseek(out, 10, SEEK_CUR);
 		fputc(8 - (Bitctx->pos), out);
 
-		////допилить вставку пустых битов
+		////Г¤Г®ГЇГЁГ«ГЁГІГј ГўГ±ГІГ ГўГЄГі ГЇГіГ±ГІГ»Гµ ГЎГЁГІГ®Гў
 	}
 
 	free(Bitctx);
