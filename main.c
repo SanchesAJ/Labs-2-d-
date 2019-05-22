@@ -1,0 +1,400 @@
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <string.h>
+#include "pqeue.h"
+
+
+//////////////////////////////////////////STACK///////////////////////////////////
+typedef struct _List {
+	hufftreeNode *val;
+	struct _List *next;
+} List;
+typedef struct _Stack {
+	List *head;
+} Stack;
+typedef enum ErrorCode {
+	GOOD,
+	MEMORY_ERROR,
+	VOID,
+	NO
+} Error;
+List *createList(hufftreeNode *value) {
+	List *l = malloc(sizeof(List));
+	if (l == NULL) {
+		printf("Error");
+		return NULL;
+	}
+	l->val = value;
+	l->next = NULL;
+	return l;
+}
+Error pushStack(Stack *s, hufftreeNode *el) {
+	List *l = createList(el);
+	if (l == NULL)
+		return MEMORY_ERROR;
+	l->next = s->head;
+	s->head = l;
+	return GOOD;
+}
+int isEmptyStack(Stack *f) {
+	return f->head == NULL ? 1 : 0;
+}
+Error popStack(Stack *s, hufftreeNode *a) {
+	if (s->head == NULL)
+		return VOID;
+	a = s->head->val;
+	List *oldHead = s->head;
+	s->head = s->head->next;
+	free(oldHead);
+	return GOOD;
+}
+//////////////////////////////////////////////////////////////////////////////////
+typedef struct _bitCotx {
+	int pos;
+	unsigned char str;
+	FILE *out;
+} BitCotx;
+
+
+////////////////////////////////////////////////////////////TRAINING/////////////////////////////////////////////////////////////////////////
+
+typedef struct _BinTable {
+	unsigned char symbol;
+	unsigned char StrTable[100];
+} BinTable;
+void writeBit(unsigned char code, BitCotx *bitCtx) {
+	if (code == 1 || code == '1') {
+		bitCtx->str |= 1 << (7 - (bitCtx->pos));
+	//printf("1");//Отладочный момент
+		bitCtx->pos++;
+	}
+	else {
+		bitCtx->pos++;
+	//printf("0"); //Отладочный момент
+	}
+	if (bitCtx->pos == 8) {
+		fputc(bitCtx->str, bitCtx->out);
+		bitCtx->pos = 0;
+		bitCtx->str = '\0';
+	}
+
+}
+void writeByte(unsigned char symbol, BitCotx *bitCtx) {
+	unsigned char code; int p=7;
+	for (int i = 0; i < 8; i++) {
+		code = (symbol >> (p - i)) % 2;
+		writeBit(code, bitCtx);
+	}
+}
+
+int isList(hufftreeNode *Tree) {
+	if (Tree->left == NULL && Tree->right == NULL)
+		return 1;
+	else return 0;
+
+ }
+hufftreeNode *CreateCodeTree(Pqueue *templ) {
+	while (!isLast(&templ)) {
+		hufftreeNode *One = pop(&templ);
+		hufftreeNode *Two = pop(&templ);
+		push(&templ, NULL, (One->priority) + (Two->priority), One, Two);
+	}
+	return pop(&templ);
+}
+hufftreeNode *Training(FILE *input) {
+	//Устанавливаем частоту символов
+	int *Alphabet=calloc(257,sizeof(int));
+
+	int j = 0;
+	int temp;
+	//FILE *q = fopen("save.txt", "wb");
+	while (!feof(input)) {
+		temp = fgetc(input);
+		//fputc(temp, q);
+		Alphabet[temp]++;
+		
+	}
+	
+
+	// Создание очереди.
+	int i; Pqueue *Collum = NULL;
+	for (i = 0; i < 256; ++i) {
+		if (Alphabet[i] != 0) {
+			Collum = newPqueue(i, Alphabet[i], NULL, NULL);
+			break;
+		}
+	}
+	if (Collum == NULL) {
+		exit(0);
+	}
+	int y = 0;
+	for (i = 0; i < 256; ++i) {
+		if (Alphabet[i] != 0) {
+			push(&Collum, i, Alphabet[i], NULL, NULL);
+			y++;
+		}
+	}
+	
+	
+
+	pop(&Collum);
+	//// Создаём дерево
+	//free(Alphabet);
+	return CreateCodeTree(Collum);
+}
+
+void printTree(hufftreeNode *Tree,  BitCotx *bitCtx) {
+	if (!isList(Tree)) {
+		writeBit(0, bitCtx);
+		printTree(Tree->left, bitCtx);
+		printTree(Tree->right, bitCtx);
+	}
+	else {
+		writeBit(1, bitCtx);
+		writeByte(Tree->value, bitCtx);
+	}	
+}
+int coin;  
+void CreateCodeTable(hufftreeNode *Tree, BinTable *Table, int num, unsigned char *str) {
+	coin = num;
+	if (isList(Tree)) {
+		Table[Tree->value].symbol = Tree->value;
+		strcpy(Table[Tree->value].StrTable, str);
+	}
+	else {
+		if (Tree->left != NULL) {
+			str[coin] = '0';
+			coin++;
+			CreateCodeTable(Tree->left, Table, coin, str);
+			coin--;
+			str[coin] = '\0';
+			
+		}
+		if (Tree->right != NULL) {
+			str[coin] = '1';
+			coin++;
+			CreateCodeTable(Tree->right, Table, coin, str);
+			coin--;
+			str[coin] = '\0';
+			
+		}
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+unsigned char readBit(BitCotx *bitCtx) {
+	if (bitCtx->pos == 8) {
+		bitCtx->str = fgetc(bitCtx->out);
+		bitCtx->pos = 0;
+	}
+	unsigned char bit = (bitCtx->str >> (7 - (bitCtx->pos))) % 2;
+	bitCtx->pos++;
+		return bit;
+}
+unsigned char readByte(BitCotx *bitCtx) {
+	unsigned char byte = 0;
+	for (int i = 0; i < 8; i++) {
+		unsigned char bit = readBit(bitCtx);
+		if (bit == 1 || bit == '1') {
+			byte|= 1 << (7 - i);
+		}
+		else
+			continue;
+	}
+	return byte;
+}
+hufftreeNode *readTree(BitCotx *bitCtx, hufftreeNode *Tree) {
+	hufftreeNode *node = calloc(1, sizeof(hufftreeNode));
+	int c = readBit(bitCtx);
+	if (c == 1) {
+		c = readByte(bitCtx);
+		node = newHuffNode(c, 0, NULL, NULL);
+	}
+	else
+	if(c==0){
+		node = newHuffNode(NULL, 0, NULL, NULL);
+		node->left = readTree(bitCtx, node);
+		node->right = readTree(bitCtx, node);
+	}
+	return node;
+}
+hufftreeNode *GoTree(unsigned char code, hufftreeNode *Node, FILE *out) {
+	if (code == 0) {
+		if (Node->left != NULL)
+			Node = Node->left;
+		if (isList(Node)) {
+			fputc(Node->value, out);
+			return NULL;
+		}
+		else return Node;
+	}
+	if (code == 1) {
+		if (Node->right != NULL)
+			Node = Node->right;
+		if (isList(Node)) {
+			fputc(Node->value, out);			
+			return NULL;
+		}
+		else return Node;
+	}
+}
+
+
+
+void decode(FILE *input) {
+	hufftreeNode *Tree = NULL;
+	BitCotx *Bitctx = calloc(1, sizeof(BitCotx));
+	Bitctx->out = input;
+	Bitctx->str = fgetc(input);
+
+	Tree = readTree(Bitctx, NULL);
+	
+	if (Tree == NULL) {
+		exit(0);
+	}
+	
+	//РАБОТАЕТ
+
+	FILE *out = fopen("out.txt", "wb");
+	
+	int c;
+	int pos = 7;
+	unsigned char r;
+	unsigned char b;
+	hufftreeNode *Temp = Tree;
+	int tempNext;
+	int temp;
+	while ((c = fgetc(input)) != EOF) {
+		temp = fgetc(input);
+		tempNext = fgetc(input);
+		fseek(input, -2, SEEK_CUR);
+
+		if (tempNext == EOF) {
+			
+			if (temp <= 8 && temp > 0) {
+				for (int u = 0; u < 8 - temp; u++) {
+					b = (char)c;
+					r = (c >> (pos - u)) % 2;
+					Temp = GoTree(r, Temp, out);
+					if (Temp == NULL)
+						Temp = Tree;
+
+				}
+				break;
+			}
+			
+		}
+		for (int u = 0; u < 8; u++) {
+			b = (char)c;
+			r = (c >> (pos - u)) % 2;
+			Temp = GoTree(r, Temp, out);
+			if (Temp == NULL)
+				Temp = Tree;
+
+		}
+		if ((temp >= 8 ) && (tempNext == EOF)) {
+			for (int u = 0; u < 8; u++) {
+				b = (char)temp;
+				r = (temp >> (pos - u)) % 2;
+				Temp = GoTree(r, Temp, out);
+				if (Temp == NULL)
+					Temp = Tree;
+
+			}
+			break;
+		}
+
+	}
+	fclose(out);
+}
+
+
+////////////////////////////////////////////////////////////////ENCODING///////////////////////////////////////////////////////////////////////
+
+void encode(FILE *input) {
+	//Training to main encoding
+	hufftreeNode *Code = Training(input);
+	fclose(input);
+
+
+	BitCotx *Bitctx = calloc(1, sizeof(BitCotx));
+	FILE *out = fopen("out.txt", "wb");
+	Bitctx->out = out;
+	Bitctx->pos = 0;
+	printTree(Code, Bitctx);
+	fputc(Bitctx->str, out);
+	BinTable *MainTable = calloc(256, sizeof(BinTable));
+	char *unit = calloc(256, sizeof(char));
+	if (!isList(Code))
+		CreateCodeTable(Code, MainTable, 0,unit);
+	
+	else {
+		MainTable[Code->value].symbol = Code->value;
+		*MainTable[Code->value].StrTable = '1';
+	}
+	free(unit);
+	/*for (int o = 0; o < 256; o++) {
+		if (MainTable[o].symbol != NULL) {
+			printf("%c: %s\n", MainTable[o].symbol, MainTable[o].StrTable);
+		}
+	}*/
+
+	//End of Training
+	input = fopen("in.txt", "rb");
+	fgetc(input);
+	fgetc(input);
+	fgetc(input);
+	int c;
+	Bitctx->pos = 0;
+	Bitctx->str = '\0';
+	while ((c = fgetc(input)) != EOF) {
+		
+		for (int r = 0; r < strlen(MainTable[c].StrTable); r++) {
+			unsigned char code = MainTable[c].StrTable[r];
+			writeBit(code, Bitctx);
+		}
+	}
+
+	if ((c == EOF)) {
+		fputc(Bitctx->str, Bitctx->out);
+		//fseek(out, 10, SEEK_CUR);
+		fputc(8 - (Bitctx->pos), out);
+
+		////допилить вставку пустых битов
+	}
+
+	free(Bitctx);
+	fclose(input);
+	fclose(out);
+	free(MainTable);
+
+
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+int main() {	FILE *in = fopen("in.txt", "rb");
+	unsigned char mode;
+	mode = fgetc(in);
+	unsigned char y=fgetc(in);
+	y=fgetc(in);
+	switch (mode)
+	{
+	case 'c': {
+
+		encode(in);
+		break;
+	}
+	case 'd': {
+
+		decode(in);
+		fclose(in);
+		break;
+	}
+	default:
+		printf("Help");
+		break;
+	}
+
+	return 0;
+}
