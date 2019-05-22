@@ -1,6 +1,6 @@
 
 
-// Очередь с приоритетом .с
+// ГЋГ·ГҐГ°ГҐГ¤Гј Г± ГЇГ°ГЁГ®Г°ГЁГІГҐГІГ®Г¬ .Г±
 #include <stdio.h>
 #include <stdlib.h>
 #include "pqeue.h"
@@ -35,7 +35,7 @@ int isLast(struct pqueue **head) {
 
 
 
-// Создание новой очереди.
+// Г‘Г®Г§Г¤Г Г­ГЁГҐ Г­Г®ГўГ®Г© Г®Г·ГҐГ°ГҐГ¤ГЁ.
 struct pqueue *newPqueue(unsigned char d, int p, hufftreeNode *left, hufftreeNode *right) {
 
 	hufftreeNode *node = newHuffNode(d, p, left, right);
